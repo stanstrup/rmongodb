@@ -52,9 +52,9 @@ SEXP mongo_gridfs_create(SEXP mongo_conn, SEXP db, SEXP prefix) {
     mongo* conn = _checkMongo(mongo_conn);
     const char* _db = CHAR(STRING_ELT(db, 0));
     const char* _prefix = CHAR(STRING_ELT(prefix, 0));
-    gridfs* gfs = Calloc(1, gridfs);
+    gridfs* gfs = (gridfs*)calloc(1, sizeof(gridfs));
     if (gridfs_init(conn, _db, _prefix, gfs) != MONGO_OK) {
-        Free(gfs);
+        free(gfs);
         return R_NilValue;
     }
     SEXP ret, ptr, cls;
@@ -132,7 +132,7 @@ SEXP mongo_gridfile_writer_create(SEXP gfs, SEXP remotename, SEXP contenttype) {
     gridfs* _gfs = _checkGridfs(gfs);
     const char* _remotename = CHAR(STRING_ELT(remotename, 0));
     const char* _contenttype = CHAR(STRING_ELT(contenttype, 0));
-    gridfile* gfile = Calloc(1, gridfile);
+    gridfile* gfile = (gridfile*)calloc(1, sizeof(gridfile));
 
     SEXP ret, ptr, cls;
     PROTECT(ret = allocVector(INTSXP, 1));
@@ -176,7 +176,7 @@ SEXP mongo_gridfile_writer_finish(SEXP gfw) {
     SEXP ret;
     PROTECT(ret = allocVector(LGLSXP, 1));
     LOGICAL(ret)[0] = (gridfile_writer_done(gfile) == MONGO_OK);
-    Free(gfile);
+    free(gfile);
     R_ClearExternalPtr(getAttrib(gfw, sym_mongo_gridfile));
     UNPROTECT(1);
     return ret;
@@ -206,7 +206,7 @@ SEXP mongo_gridfile_destroy(SEXP gfile) {
 
 SEXP mongo_gridfs_find(SEXP gfs, SEXP query) {
     gridfs* _gfs = _checkGridfs(gfs);
-    gridfile* gfile = Calloc(1, gridfile);
+    gridfile* gfile = (gridfile*)calloc(1, sizeof(gridfile));
     int result;
     if (_isBSON(query)) {
         bson* _query = _checkBSON(query);

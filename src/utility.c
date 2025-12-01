@@ -88,7 +88,7 @@ static void bsonFinalizer(SEXP ptr) {
     if (!R_ExternalPtrAddr(ptr)) return;
     bson* b = (bson*)R_ExternalPtrAddr(ptr);
     bson_destroy_old(b);
-    Free(b);
+    free(b);
     R_ClearExternalPtr(ptr); /* not really needed */
 }
 
@@ -97,7 +97,7 @@ SEXP _mongo_bson_create(bson* b) {
     SEXP ret, ptr, cls;
     PROTECT(ret = allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 0;
-    bson* obj = Calloc(1, bson);
+    bson* obj = (bson*)calloc(1, sizeof(bson));
     bson_copy_old(obj, b);
     ptr = R_MakeExternalPtr(obj, sym_mongo_bson, R_NilValue);
     PROTECT(ptr);

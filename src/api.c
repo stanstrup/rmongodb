@@ -15,6 +15,7 @@
 #include <R.h>
 #include <R_ext/Rdynload.h>
 #include <R_ext/Visibility.h>
+#include <stdlib.h>
 
 #include "api_bson.h"
 #include "api_mongo.h"
@@ -147,21 +148,21 @@ static const R_CallMethodDef callMethods[] = {
 
 
 static void* _malloc(size_t size) {
-    return (void*)Calloc(size, char);
+    return (void*)calloc(size, sizeof(char));
 }
 
 
 static void* _realloc(void* p, size_t size) {
-    return (void*)Realloc(p, size, char);
+    return (void*)realloc(p, size * sizeof(char));
 }
 
 
 static void _free(void* p) {
-    Free(p);
+    free(p);
 }
 
 static void _err_handler(const char* errmsg) {
-    error(errmsg);
+    error("%s", errmsg);
 }
 
 

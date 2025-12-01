@@ -40,7 +40,7 @@ SEXP mmongo_create() {
     SEXP ret, ptr, cls;
     PROTECT(ret = allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 0;
-    mongo* conn = Calloc(1, mongo);
+    mongo* conn = (mongo*)calloc(1, sizeof(mongo));
     ptr = R_MakeExternalPtr(conn, sym_mongo, R_NilValue);
     PROTECT(ptr);
     R_RegisterCFinalizerEx(ptr, mongoFinalizer, TRUE);
@@ -190,7 +190,7 @@ SEXP rmongo_insert_batch(SEXP mongo_conn, SEXP ns, SEXP b) {
     if (TYPEOF(b) != VECSXP)
         error("Expected a list of mongo.bson class objects");
     int len = LENGTH(b);
-    bson** blist = Calloc(len, bson*);
+    bson** blist = (bson**)calloc(len, sizeof(bson*));
     int i;
     int success = 1;
     for (i = 0; i < len && success; i++) {
@@ -202,7 +202,7 @@ SEXP rmongo_insert_batch(SEXP mongo_conn, SEXP ns, SEXP b) {
     }
     if (success)
         LOGICAL(ret)[0] = (mongo_insert_batch(conn, _ns, (const bson**)blist, len, 0, 0) == MONGO_OK);
-    Free(blist);
+    free(blist);
     if (!success)
         error("Expected list of mongo.bson class objects");
     UNPROTECT(1);
@@ -304,7 +304,7 @@ SEXP rmongo_find(SEXP mongo_conn, SEXP ns, SEXP query, SEXP sort, SEXP fields, S
       strcpy(str, _ns);
       char* _db = strtok(str, ".");
       if (mongo_cmd_get_last_error(conn, _db, &out) != MONGO_OK) {
-        error(conn->lasterrstr);
+        error("%s", conn->lasterrstr);
       }
       error("find failed with unknown error.");
     }
@@ -391,14 +391,14 @@ SEXP rmongo_count(SEXP mongo_conn, SEXP ns, SEXP query) {
     if (!p)
         error("Expected a '.' in the namespace.");
     int len = p - (char*)_ns;
-    char* db = Calloc(len+1, char);
+    char* db = (char*)calloc(len+1, sizeof(char));
     strncpy(db, _ns, len);
     db[len] = '\0';
     bson* _query = _checkBSON(query);
     SEXP ret;
     PROTECT(ret = allocVector(REALSXP, 1));
     REAL(ret)[0] = mongo_count(conn, db, p+1, _query);
-    Free(db);
+    free(db);
     UNPROTECT(1);
     return ret;
 }
@@ -458,13 +458,13 @@ SEXP mongo_drop(SEXP mongo_conn, SEXP ns) {
     if (!p)
         error("Expected a '.' in the namespace.");
     int len = p - (char*)_ns;
-    char* db = Calloc(len+1, char);
+    char* db = (char*)calloc(len+1, sizeof(char));
     strncpy(db, _ns, len);
     db[len] = '\0';
     SEXP ret;
     PROTECT(ret = allocVector(LGLSXP, 1));
     LOGICAL(ret)[0] = (mongo_cmd_drop_collection(conn, db, p+1, NULL) == MONGO_OK);
-    Free(db);
+    free(db);
     UNPROTECT(1);
     return ret;
 }

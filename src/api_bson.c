@@ -208,7 +208,7 @@ static void bson_bufferFinalizer(SEXP ptr) {
     if (!R_ExternalPtrAddr(ptr)) return;
     bson_buffer* b = (bson_buffer*)R_ExternalPtrAddr(ptr);
     bson_destroy_old(b);
-    Free(b);
+    free(b);
     R_ClearExternalPtr(ptr);
 }
 
@@ -217,7 +217,7 @@ SEXP _mongo_bson_buffer_create() {
     SEXP ret, ptr, cls;
     PROTECT(ret = allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 0;
-    bson_buffer* buf = Calloc(1, bson_buffer);
+    bson_buffer* buf = (bson_buffer*)calloc(1, sizeof(bson_buffer));
     bson_init_old(buf);
     ptr = R_MakeExternalPtr(buf, sym_mongo_bson_buffer, R_NilValue);
     PROTECT(ptr);
@@ -240,7 +240,7 @@ SEXP mongo_bson_buffer_create() {
 static void bson_OIDfinalizer(SEXP ptr) {
     if (!R_ExternalPtrAddr(ptr)) return;
     bson_oid_t* oid = (bson_oid_t*)R_ExternalPtrAddr(ptr);
-    Free(oid);
+    free(oid);
     R_ClearExternalPtr(ptr); /* not really needed */
 }
 
@@ -260,7 +260,7 @@ SEXP _mongo_oid_create(bson_oid_t* oid) {
 
 
 SEXP mongo_oid_create() {
-    bson_oid_t* oid = Calloc(1, bson_oid_t);
+    bson_oid_t* oid = (bson_oid_t*)calloc(1, sizeof(bson_oid_t));
     bson_oid_gen(oid);
     SEXP ret = _mongo_oid_create(oid);
     UNPROTECT(3);
@@ -299,7 +299,7 @@ SEXP mongo_bson_print(SEXP b) {
 static void bsonIteratorFinalizer(SEXP ptr) {
     if (!R_ExternalPtrAddr(ptr)) return;
     bson_iterator* iter = (bson_iterator*)R_ExternalPtrAddr(ptr);
-    Free(iter);
+    free(iter);
     R_ClearExternalPtr(ptr); /* not really needed */
 }
 
@@ -308,7 +308,7 @@ SEXP _mongo_bson_iterator_create(bson_iterator* iter) {
     SEXP ret, ptr, cls;
     PROTECT(ret = allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 0;
-    bson_iterator* _iter = Calloc(1, bson_iterator);
+    bson_iterator* _iter = (bson_iterator*)calloc(1, sizeof(bson_iterator));
     memcpy(_iter, iter, sizeof(bson_iterator));
     PROTECT(ptr = R_MakeExternalPtr(_iter, sym_mongo_bson_iterator, R_NilValue));
     R_RegisterCFinalizerEx(ptr, bsonIteratorFinalizer, TRUE);
@@ -452,7 +452,7 @@ SEXP _array_to_object(bson_iterator* iter) {
     do {
         bson_iterator_subiterator(&sub[dims], &sub[dims+1]);
         if (++dims > MAXDIM)
-            error("Max dimensions (%d) exceeded. Use an iterator\n");
+            error("Max dimensions (%d) exceeded. Use an iterator\n", MAXDIM);
         sub_type = bson_iterator_next(&sub[dims]);
     }
     while (sub_type == BSON_ARRAY);
@@ -691,7 +691,7 @@ SEXP _mongo_bson_value(bson_iterator* _iter) {
         return R_NilValue;
 
     case BSON_OID: {
-        bson_oid_t* oid = Calloc(1, bson_oid_t);
+        bson_oid_t* oid = (bson_oid_t*)calloc(1, sizeof(bson_oid_t));
         memcpy(oid, bson_iterator_oid(_iter), sizeof(bson_oid_t));
         ret = _mongo_oid_create(oid);
         UNPROTECT(3);
@@ -981,7 +981,7 @@ SEXP mongo_oid_from_string(SEXP hexstr) {
     const char* _hexstr = CHAR(STRING_ELT(hexstr, 0));
     if (strlen(_hexstr) != 24)
         error("OID string length must be 24");
-    bson_oid_t* oid = Calloc(1, bson_oid_t);
+    bson_oid_t* oid = (bson_oid_t*)calloc(1, sizeof(bson_oid_t));
     bson_oid_from_string(oid, _hexstr);
     SEXP ret = _mongo_oid_create(oid);
     UNPROTECT(3);
